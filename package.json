@@ -1,25 +1,31 @@
 {
   "name": "deepseek-search-fetch-mcp",
   "version": "1.0.0",
-  "private": true,
+  "license": "MIT",
   "description": "Local stdio MCP for the official DeepSeek Search and Fetch APIs",
+  "repository": { "type": "git", "url": "git+https://github.com/klkl2164/deepseek-search-mcp.git" },
+  "homepage": "https://github.com/klkl2164/deepseek-search-mcp#readme",
+  "bugs": { "url": "https://github.com/klkl2164/deepseek-search-mcp/issues" },
+  "keywords": ["mcp", "deepseek", "web-search", "web-fetch", "claude-code", "stdio"],
   "type": "module",
   "bin": {
     "deepseek-search-fetch-mcp": "dist/index.js"
   },
-  "files": ["dist", "README.md", ".env.example"],
+  "files": ["dist", "README.md", "README.en.md", "LICENSE", "docs", ".env.example"],
   "engines": {
     "node": ">=22.12.0"
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "prepack": "npm run build",
+    "prepare": "npm run build",
     "typecheck": "tsc --noEmit",
     "pretest": "npm run build",
     "test": "vitest run",
     "dev": "tsx src/index.ts",
     "start": "node dist/index.js",
-    "check": "npm run typecheck && npm run build && npm test"
+    "check": "npm run typecheck && npm test && npm run check:public",
+    "check:public": "node scripts/check-public.mjs",
+    "test:package": "node scripts/test-package.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/server": "^2.3.1",

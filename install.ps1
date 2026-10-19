@@ -1,17 +1,21 @@
 [CmdletBinding()]
 param(
   [switch]$CheckOnly,
-  [switch]$SkipKeyPrompt
+  [switch]$SkipKeyPrompt,
+  [switch]$ConfigureKeyOnly
 )
 
 $ErrorActionPreference = 'Stop'
 $taskProjectPath = $PSScriptRoot
-$taskNode = Get-Command node.exe -ErrorAction Stop
-$taskNpm = Get-Command npm.cmd -ErrorAction Stop
-$taskClaude = Get-Command claude -ErrorAction Stop
-$taskVersion = & $taskNode -p 'process.versions.node'
-if ($LASTEXITCODE -ne 0 -or [version]$taskVersion -lt [version]'22.12.0') {
-  throw 'Node.js 22.12 or newer is required.'
+if ($CheckOnly -and $ConfigureKeyOnly) { throw 'Choose either -CheckOnly or -ConfigureKeyOnly.' }
+if (-not $ConfigureKeyOnly) {
+  $taskNode = Get-Command node.exe -ErrorAction Stop
+  $taskNpm = Get-Command npm.cmd -ErrorAction Stop
+  $taskClaude = Get-Command claude -ErrorAction Stop
+  $taskVersion = & $taskNode -p 'process.versions.node'
+  if ($LASTEXITCODE -ne 0 -or [version]$taskVersion -lt [version]'22.12.0') {
+    throw 'Node.js 22.12 or newer is required.'
+  }
 }
 $taskEntryPath = Join-Path $taskProjectPath 'dist\index.js'
 
@@ -25,14 +29,16 @@ if ($CheckOnly) {
 
 Push-Location -LiteralPath $taskProjectPath
 try {
-  Write-Host '[1/3] Installing dependencies and building...'
-  & $taskNpm ci --no-fund
-  if ($LASTEXITCODE -ne 0) { throw 'npm ci failed. Registration was not attempted.' }
-  & $taskNpm run build
-  if ($LASTEXITCODE -ne 0) { throw 'Build failed. Registration was not attempted.' }
-  if (-not (Test-Path -LiteralPath $taskEntryPath -PathType Leaf)) { throw 'Built entry point is missing.' }
+  if (-not $ConfigureKeyOnly) {
+    Write-Host '[1/3] Installing dependencies and building...'
+    & $taskNpm ci --no-fund
+    if ($LASTEXITCODE -ne 0) { throw 'npm ci failed. Registration was not attempted.' }
+    & $taskNpm run build
+    if ($LASTEXITCODE -ne 0) { throw 'Build failed. Registration was not attempted.' }
+    if (-not (Test-Path -LiteralPath $taskEntryPath -PathType Leaf)) { throw 'Built entry point is missing.' }
+  }
 
-  Write-Host '[2/3] Configuring the independent DeepSeek API key...'
+  Write-Host 'Configuring the independent DeepSeek API key...'
   if ([string]::IsNullOrWhiteSpace($env:DEEPSEEK_API_KEY)) {
     $env:DEEPSEEK_API_KEY = [Environment]::GetEnvironmentVariable('DEEPSEEK_API_KEY', 'User')
   }
@@ -52,6 +58,10 @@ try {
     }
   }
 
+  if ($ConfigureKeyOnly) {
+    Write-Host 'Key configuration complete. Restart the process that launches your MCP client.'
+    return
+  }
   Write-Host '[3/3] Registering deepseek-web in Claude Code...'
   & $taskClaude mcp add --transport stdio --scope user deepseek-web -- $taskNode.Source $taskEntryPath
   if ($LASTEXITCODE -ne 0) {
