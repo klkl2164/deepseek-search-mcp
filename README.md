@@ -38,7 +38,7 @@ macOS / Linux：
 claude mcp add --transport stdio --scope user deepseek-web -- npx -y --package=git+https://github.com/klkl2164/deepseek-search-mcp.git#main deepseek-search-fetch-mcp
 ```
 
-首次启动会下载并构建 GitHub 源码，可能需要一点时间。当前通过 GitHub 分发，尚未发布到 npm；无需手动下载压缩包。`#main` 跟随主分支；需要固定版本时可以替换为已存在的 commit SHA 或 release tag。
+首次启动会下载并构建 GitHub 源码，可能需要一点时间。若客户端等待超时，可[延长首次启动等待](docs/CLIENTS.md#首次启动超时)，或使用下面的本地安装。当前通过 GitHub 分发，尚未发布到 npm；无需手动下载压缩包。`#main` 跟随主分支；需要固定版本时可以替换为已存在的 commit SHA 或 release tag。
 
 **然后配置密钥：** Windows 用户可运行下面的安装脚本，隐藏输入并保存 Key。macOS/Linux 请在启动客户端的环境中设置 `DEEPSEEK_API_KEY`，或通过客户端的私有环境变量配置传入，详见[客户端配置](docs/CLIENTS.md)。不要把真实 Key 提交到仓库或发到 Issue 中。
 

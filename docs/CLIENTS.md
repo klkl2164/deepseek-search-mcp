@@ -86,3 +86,22 @@ npx @modelcontextprotocol/inspector --cli node dist/index.js --method tools/list
 ```
 
 返回 `deepseek_search` 和 `deepseek_fetch` 即表示协议连接正常。真实搜索、抓取可能计费；工具发现不验证 Key 或账户余额。
+
+## 首次启动超时
+
+GitHub 安装首次需要下载依赖并构建，可能超过客户端默认的启动等待时间。可以先本地构建，或按 [Claude Code 官方说明](https://code.claude.com/docs/en/mcp)给启动 Claude Code 的进程设置 `MCP_TIMEOUT`：
+
+Windows PowerShell（当前终端）：
+
+```powershell
+$env:MCP_TIMEOUT = '120000'
+claude
+```
+
+macOS/Linux：
+
+```sh
+MCP_TIMEOUT=120000 claude
+```
+
+这控制客户端等待服务启动的时间，和 MCP 内部的 `DEEPSEEK_MCP_TIMEOUT_MS` HTTP 请求预算不同。Inspector 测试 Git 安装时可用 `--connect-timeout 120000`；本地已构建入口通常无需延长。

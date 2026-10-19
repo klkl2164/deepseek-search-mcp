@@ -32,7 +32,7 @@ claude mcp add --transport stdio --scope user deepseek-web -- npx -y --package=g
 
 Set `DEEPSEEK_API_KEY` in the environment that launches your MCP client, or through its private environment configuration. The server does **not** load `.env` automatically. Restart your client and check `/mcp`. Discovery works without a key; actual calls return `CONFIG_ERROR` until configured.
 
-GitHub installation requires Git and builds on first launch. This package has not been published to npm. `#main` follows the default branch; use an existing commit SHA or release tag to pin a version.
+GitHub installation requires Git and builds on first launch. If the client times out, allow more startup time with `MCP_TIMEOUT=120000` in the environment launching Claude Code, or build locally first. This package has not been published to npm. `#main` follows the default branch; use an existing commit SHA or release tag to pin a version.
 
 ### Windows guided setup
 
