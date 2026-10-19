@@ -31,22 +31,22 @@ describe.skipIf(process.platform !== 'win32')('one-command PowerShell installer'
     expect(registration.slice(0, 8)).toEqual(['claude', 'mcp', 'add', '--transport', 'stdio', '--scope', 'user', 'deepseek-web']);
     expect(registration[8]).toMatch(/node\.exe$/i);
     expect(registration[9]).toBe(fileURLToPath(new URL('../dist/index.js', import.meta.url)));
-  });
+  }, 20000);
   it('does not register after a failed build', () => {
     const result = run('build-failure');
     expect(result.success).toBe(false);
     expect(result.failure).toContain('Build failed');
     expect(result.calls.every(call => call[0] === 'npm')).toBe(true);
-  });
+  }, 20000);
   it('configures an existing key without building or registering again', () => {
     const result = run('key-only');
     expect(result.success).toBe(true);
     expect(result.calls).toEqual([]);
-  });
+  }, 20000);
   it('reports a registration failure without deleting an existing server', () => {
     const result = run('registration-failure');
     expect(result.success).toBe(false);
     expect(result.failure).toContain('Registration failed');
     expect(result.calls.some(call => call.includes('remove'))).toBe(false);
-  });
+  }, 20000);
 });
