@@ -1,0 +1,29 @@
+name: Bug report / 问题反馈
+description: Report a reproducible problem. 请勿附带密钥或个人路径。
+body:
+  - type: markdown
+    attributes:
+      value: 'Do not include API keys, Authorization headers, proxy credentials or personal paths. / 请先脱敏。安全漏洞请参阅 SECURITY.md。'
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment / 环境
+      description: OS, Node version, client and installation method.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce / 复现步骤
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected and actual behavior / 预期与实际表现
+    validations:
+      required: true
+  - type: textarea
+    id: error
+    attributes:
+      label: Error code and redacted logs / 错误码与脱敏日志
