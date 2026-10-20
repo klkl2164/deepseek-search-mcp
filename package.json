@@ -1,6 +1,6 @@
 {
   "name": "deepseek-search-fetch-mcp",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "license": "MIT",
   "description": "Local stdio MCP for the official DeepSeek Search and Fetch APIs",
   "repository": { "type": "git", "url": "git+https://github.com/klkl2164/deepseek-search-mcp.git" },

@@ -14,6 +14,8 @@
 
 需要你自己的 **DeepSeek 官方 API Key**。本项目独立于模型供应商，不要求使用 DeepSeek 模型；也不会替换客户端的内置 WebSearch/WebFetch。无需浏览器、Docker 或数据库。
 
+默认使用策略是 **内置工具优先，DeepSeek 按需兜底**：需要联网时先用 agent 自身的搜索/抓取；对应内置工具未提供、供应商不支持或技术性调用失败时，模型自动改用本 MCP。搜索与抓取分别判断，内置工具成功时不重复调用 DeepSeek。详见[自动兜底规则](docs/ROUTING.md)。
+
 ## 快速开始
 
 准备 [Node.js](https://nodejs.org/) 22.12+（推荐 22/24 LTS）、Git、Claude Code，以及 [DeepSeek 官方 API Key](https://platform.deepseek.com/api_keys)。Search/Fetch 为独立 HTTP API，实际调用可能计费，见[官方计费说明](https://api-docs.deepseek.com/zh-cn/guides/search/)。
@@ -22,23 +24,25 @@
 
 把下面这句话发给 Claude Code：
 
-> 请安装 https://github.com/klkl2164/deepseek-search-mcp 的 MCP 到用户级配置。阅读 README，使用 GitHub 安装命令或克隆后的安装脚本；不要改动其他 MCP 或模型配置。若缺少 DEEPSEEK_API_KEY，提示我在本机设置，不要让我在聊天中提供密钥；不要自动发起付费 API 调用。
+> 请安装 https://github.com/klkl2164/deepseek-search-mcp 的 MCP 到用户级配置，并启用“内置联网工具优先、DeepSeek 自动兜底”规则。阅读 README，使用 GitHub 安装命令或克隆后的安装脚本；不要改动其他 MCP 或模型配置。若缺少 DEEPSEEK_API_KEY，提示我在本机设置，不要让我在聊天中提供密钥；安装过程中不要发起付费 API 测试。
 
 ### 方式二：一条命令注册
 
 Windows PowerShell：
 
 ```powershell
-claude mcp add --transport stdio --scope user deepseek-web -- cmd /c npx -y --package=git+https://github.com/klkl2164/deepseek-search-mcp.git#main deepseek-search-fetch-mcp
+npx.cmd -y --package=git+https://github.com/klkl2164/deepseek-search-mcp.git#main deepseek-search-fetch-mcp --setup-claude
 ```
 
 macOS / Linux：
 
 ```sh
-claude mcp add --transport stdio --scope user deepseek-web -- npx -y --package=git+https://github.com/klkl2164/deepseek-search-mcp.git#main deepseek-search-fetch-mcp
+npx -y --package=git+https://github.com/klkl2164/deepseek-search-mcp.git#main deepseek-search-fetch-mcp --setup-claude
 ```
 
-首次启动会下载并构建 GitHub 源码，可能需要一点时间。若客户端等待超时，可[延长首次启动等待](docs/CLIENTS.md#首次启动超时)，或使用下面的本地安装。当前通过 GitHub 分发，尚未发布到 npm；无需手动下载压缩包。`#main` 跟随主分支；需要固定版本时可以替换为已存在的 commit SHA 或 release tag。
+该命令注册 MCP，并安装 Claude Code 用户级的“内置优先、自动兜底”规则；不会修改模型供应商、其他 MCP 或现有 `CLAUDE.md`。已经注册过的用户，可仅[安装或更新规则](docs/ROUTING.md#已有用户启用)。
+
+安装时会下载并构建 GitHub 源码，可能需要一点时间。若后续客户端等待超时，可[延长首次启动等待](docs/CLIENTS.md#首次启动超时)，或使用下面的本地安装。当前通过 GitHub 分发，尚未发布到 npm；无需手动下载压缩包。`#main` 跟随主分支；需要固定版本时可以替换为已存在的 commit SHA 或 release tag。
 
 **然后配置密钥：** Windows 用户可运行下面的安装脚本，隐藏输入并保存 Key。macOS/Linux 请在启动客户端的环境中设置 `DEEPSEEK_API_KEY`，或通过客户端的私有环境变量配置传入，详见[客户端配置](docs/CLIENTS.md)。不要把真实 Key 提交到仓库或发到 Issue 中。
 
@@ -50,13 +54,19 @@ cd deepseek-search-mcp
 powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
 ```
 
-脚本自动安装依赖、构建、注册 `deepseek-web`；缺少 Key 时会提示隐藏输入，保存为 Windows 用户环境变量。安装后请保留项目目录。`-SkipKeyPrompt` 只安装不询问 Key，`-CheckOnly` 只检查环境。已经存在同名注册时不会覆盖；可用 `-ConfigureKeyOnly` 单独配置 Key。
+脚本自动安装依赖、构建、注册 `deepseek-web` 并安装自动兜底规则；缺少 Key 时会提示隐藏输入，保存为 Windows 用户环境变量。安装后请保留项目目录。`-SkipKeyPrompt` 跳过 Key 输入，`-CheckOnly` 只检查环境，`-SkipRoutingRules` 不写客户端规则。已经存在同名注册时不会覆盖；可用 `-ConfigureKeyOnly` 单独配置 Key。
 
 重新打开 Claude Code，在 `/mcp` 中确认两个工具已出现。没有 Key 也可以连接和列工具，实际搜索或抓取时会返回 `CONFIG_ERROR`。
 
 ## 使用示例
 
-可以直接对模型说：
+正常使用无需每次指定工具名，例如：
+
+```text
+查一下 DeepSeek Search API 的最新官方文档，并给出来源链接。
+```
+
+模型先使用可用的内置联网工具；只有不可用时才兜底到 DeepSeek。如需明确指定本 MCP，也可以说：
 
 ```text
 请使用 deepseek-web 的 deepseek_search 搜索 DeepSeek Search API 官方文档，
@@ -112,6 +122,7 @@ npm run test:package
 
 - [工具参数、限制和错误码](docs/REFERENCE.md)
 - [其他客户端与手动配置](docs/CLIENTS.md)
+- [自动兜底、已有用户升级与关闭规则](docs/ROUTING.md)
 - [贡献指南](CONTRIBUTING.md) · [测试说明](docs/TESTING.md)
 - [安全政策](SECURITY.md) · [报告问题](https://github.com/klkl2164/deepseek-search-mcp/issues)
 

@@ -2,11 +2,11 @@
 
 [返回 README](../README.md)
 
-服务通过 stdio 提供 MCP。客户端启动 Node 子进程，并向子进程传入 `DEEPSEEK_API_KEY`。服务不会修改客户端的模型供应商或其他 MCP。
+服务通过 stdio 提供 MCP。客户端启动 Node 子进程，并向子进程传入 `DEEPSEEK_API_KEY`。默认策略为内置搜索/抓取优先，DeepSeek 自动兜底。服务不会修改客户端的模型供应商或其他 MCP；显式安装命令会写入自己的 Claude Code 用户规则，详见[兜底规则](ROUTING.md)。
 
 ## Claude Code
 
-直接使用 README 的 GitHub 注册命令。Windows 通过 `cmd /c npx` 启动，macOS/Linux 直接使用 `npx`。缺少 Node 或 Git 时先安装它们；GUI 启动的客户端需要能在 PATH 中找到它们。
+直接使用 README 的 `--setup-claude` 命令，自动注册并安装用户规则。注册后的 Windows 运行时通过 `cmd /c npx` 启动，macOS/Linux 直接使用 `npx`；MCP 运行参数中不包含安装选项。缺少 Node 或 Git 时先安装它们；GUI 启动的客户端需要能在 PATH 中找到它们。
 
 本地源码注册（先运行 `npm ci`，会自动构建）：
 
@@ -24,7 +24,9 @@ macOS/Linux：
 claude mcp add --transport stdio --scope user deepseek-web -- "$(command -v node)" "$PWD/dist/index.js"
 ```
 
-在克隆目录运行以上命令，路径自动生成；安装后保留目录。要卸载注册：
+在克隆目录运行以上命令，路径自动生成；安装后保留目录。
+
+手动注册后，另运行 `node dist/index.js --install-claude-rules` 安装用户级自动兜底规则；注册命令本身不会安装规则。卸载时先按 [ROUTING.md](ROUTING.md#关闭与卸载)移除规则，再移除注册：
 
 ```sh
 claude mcp remove --scope user deepseek-web
@@ -75,7 +77,7 @@ macOS/Linux：
 
 Windows 使用 `"command": "cmd"`，并在 `args` 数组开头添加 `"/c", "npx"`，其余参数相同。真实 Key 不应写入共享的项目配置或提交到 Git。
 
-其他客户端未经本项目逐一集成验证；协议测试覆盖 stdio 握手、列工具及工具调用。
+其他客户端接收 MCP 自带的内置优先说明；如需持久规则，可按该客户端支持的机制配置 [ROUTING.md](ROUTING.md) 中的策略。Claude Code 的用户规则不会自动写入其他 agent 配置。其他客户端未经本项目逐一集成验证；协议测试覆盖 stdio 握手、列工具及工具调用。
 
 ## 检查连接
 

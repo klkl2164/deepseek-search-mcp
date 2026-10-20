@@ -2,7 +2,8 @@
 param(
   [switch]$CheckOnly,
   [switch]$SkipKeyPrompt,
-  [switch]$ConfigureKeyOnly
+  [switch]$ConfigureKeyOnly,
+  [switch]$SkipRoutingRules
 )
 
 $ErrorActionPreference = 'Stop'
@@ -20,7 +21,7 @@ if (-not $ConfigureKeyOnly) {
 $taskEntryPath = Join-Path $taskProjectPath 'dist\index.js'
 
 if ($CheckOnly) {
-  Write-Host 'Check passed. Installation would build the project and register deepseek-web in Claude Code user scope.'
+  Write-Host 'Check passed. Installation would build and register deepseek-web, then install native-first fallback rules unless -SkipRoutingRules is set.'
   Write-Host ('Node: ' + $taskNode.Source)
   Write-Host ('Entry: ' + $taskEntryPath)
   Write-Host 'No credentials, environment variables or Claude Code settings were changed.'
@@ -66,6 +67,10 @@ try {
   & $taskClaude mcp add --transport stdio --scope user deepseek-web -- $taskNode.Source $taskEntryPath
   if ($LASTEXITCODE -ne 0) {
     throw 'Registration failed. If deepseek-web already exists, inspect it with: claude mcp get deepseek-web'
+  }
+  if (-not $SkipRoutingRules) {
+    & $taskNode $taskEntryPath --install-claude-rules
+    if ($LASTEXITCODE -ne 0) { throw 'MCP registered, but routing rules could not be installed. Resolve the rule file conflict and run --install-claude-rules again.' }
   }
   Write-Host 'Installed. Restart Claude Code, then check /mcp.'
   if ([string]::IsNullOrWhiteSpace($env:DEEPSEEK_API_KEY)) {
