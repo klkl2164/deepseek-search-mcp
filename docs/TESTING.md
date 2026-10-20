@@ -21,11 +21,14 @@ npm run test:package
 | HTTP | Error codes, bounded retries, Retry-After, malformed JSON, streaming limits, cancellation, timeouts and scheduling |
 | Security | Dangerous URL forms, reserved IP ranges, DNS answers, configuration validation, credential redaction |
 | Proxy | Direct/ProxyAgent selection, native fetch with a network-disabled MockAgent, local CONNECT simulation |
-| MCP | Real child-process initialize/tools-list/tools-call, mock Search → Fetch, isError and clean JSON-RPC stdout |
-| Windows installer | Mock registration, absolute paths, build failure, existing registration preservation, key-only mode |
+| MCP | Real child-process initialize/tools-list/tools-call, native-first instructions/descriptions, mock Search → Fetch, isError and clean JSON-RPC stdout |
+| Windows installer | Mock registration, absolute paths, build failure, existing registration preservation, key-only mode, isolated rules and opt-out |
+| Routing setup | Idempotent install, managed-block update/removal, preserving user files, custom config directories, built CLI setup without a Key |
 | Distribution | Compiled bin, production-only installation, package contents, Git prepare lifecycle and packaged MCP discovery |
 
 Windows installer cases are skipped on other operating systems. Mock response values are fixtures, never production fallback results.
+
+Routing tests validate that the policy is exposed and installed correctly; they do not call a real model or prove that every agent will follow the selection policy. See [routing boundaries](ROUTING.md).
 
 ## Public-file checks
 

@@ -19,6 +19,8 @@ npm run test:package
 
 All default tests must run without a real key or paid requests. Inject the HTTP transport or DNS resolver when testing upstream behavior. Keep mock entry points in `tests/fixtures`, outside the production build. Windows installer tests mock registration and never change the actual user's credentials or MCP settings.
 
+Routing-rule tests must use isolated temporary `CLAUDE_CONFIG_DIR` directories. Runtime stdio startup must never install or modify client rules; only explicit setup commands may do so. Keep the single shared policy in `src/policy.ts` consistent with tool descriptions, MCP initialization and client setup.
+
 Add tests for behavior changes such as error classification, cancellation, URL validation, pagination or packaging. Documentation-only changes should pass the public-file scan. See [testing](docs/TESTING.md).
 
 ## Pull requests

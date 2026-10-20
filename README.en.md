@@ -14,6 +14,8 @@ Use DeepSeek's official Search and Fetch APIs from Claude Code or any MCP client
 
 Requires your own **official DeepSeek API key**. Works independently of your model provider. No browser, Docker or database required. This community project is not affiliated with DeepSeek.
 
+Default selection policy: **native web tools first, DeepSeek as an automatic fallback**. Search and fetch are evaluated independently. If the matching native capability is missing, unsupported or fails technically, the model uses this MCP within existing permissions. Successful native calls are not duplicated. See [routing](docs/ROUTING.md).
+
 ## Quick start
 
 Install Node.js 22.12+ (22/24 LTS recommended), Git and Claude Code. Obtain an [official API key](https://platform.deepseek.com/api_keys). Independent Search/Fetch requests may incur charges; see the [official guide](https://api-docs.deepseek.com/zh-cn/guides/search/).
@@ -21,16 +23,16 @@ Install Node.js 22.12+ (22/24 LTS recommended), Git and Claude Code. Obtain an [
 Windows PowerShell:
 
 ```powershell
-claude mcp add --transport stdio --scope user deepseek-web -- cmd /c npx -y --package=git+https://github.com/klkl2164/deepseek-search-mcp.git#main deepseek-search-fetch-mcp
+npx.cmd -y --package=git+https://github.com/klkl2164/deepseek-search-mcp.git#main deepseek-search-fetch-mcp --setup-claude
 ```
 
 macOS / Linux:
 
 ```sh
-claude mcp add --transport stdio --scope user deepseek-web -- npx -y --package=git+https://github.com/klkl2164/deepseek-search-mcp.git#main deepseek-search-fetch-mcp
+npx -y --package=git+https://github.com/klkl2164/deepseek-search-mcp.git#main deepseek-search-fetch-mcp --setup-claude
 ```
 
-Set `DEEPSEEK_API_KEY` in the environment that launches your MCP client, or through its private environment configuration. The server does **not** load `.env` automatically. Restart your client and check `/mcp`. Discovery works without a key; actual calls return `CONFIG_ERROR` until configured.
+Setup registers the server and installs a user-level Claude Code routing rule, preserving model settings, other MCP servers and existing `CLAUDE.md` files. Existing installations can use `--install-claude-rules` instead of registering again. Set `DEEPSEEK_API_KEY` in the environment that launches your MCP client, or through its private environment configuration. The server does **not** load `.env` automatically. Restart your client and check `/mcp`. Discovery works without a key; actual calls return `CONFIG_ERROR` until configured.
 
 GitHub installation requires Git and builds on first launch. If the client times out, allow more startup time with `MCP_TIMEOUT=120000` in the environment launching Claude Code, or build locally first. This package has not been published to npm. `#main` follows the default branch; use an existing commit SHA or release tag to pin a version.
 
@@ -42,15 +44,15 @@ cd deepseek-search-mcp
 powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
 ```
 
-The script builds and registers the server, prompting for a missing key with hidden input and saving it as a Windows user environment variable. Keep the clone after installation. Use `-SkipKeyPrompt` for unattended registration, `-CheckOnly` for a dry run, or `-ConfigureKeyOnly` to configure a key without registering again. Existing registrations are preserved. Restart the client after changing user environment variables.
+The script builds and registers the server, installs native-first fallback rules, and prompts for a missing key with hidden input, saving it as a Windows user environment variable. Keep the clone after installation. Use `-SkipKeyPrompt` for unattended registration, `-CheckOnly` for a dry run, `-SkipRoutingRules` to leave client rules untouched, or `-ConfigureKeyOnly` to configure a key without registering again. Existing registrations are preserved. Restart the client after setup.
 
 ### Ask your coding agent
 
-> Install https://github.com/klkl2164/deepseek-search-mcp as a user-scoped MCP server. Follow its README. Preserve other servers and model settings. If DEEPSEEK_API_KEY is missing, ask me to configure it locally, never in chat. Do not make paid API requests automatically.
+> Install https://github.com/klkl2164/deepseek-search-mcp as a user-scoped MCP server and enable native-first automatic fallback rules. Follow its README. Preserve other servers and model settings. If DEEPSEEK_API_KEY is missing, ask me to configure it locally, never in chat. Do not make paid API test requests during installation.
 
 ## Usage
 
-Ask your model to search with `deepseek_search`, then read a result with `deepseek_fetch`.
+Ask a normal web question: the model should use native tools first and fall back only if needed. You can also explicitly request `deepseek_search` and `deepseek_fetch`. This is a model-followed policy, not a hard tool interceptor or a guarantee that the model will always comply.
 
 ```json
 { "query": "site:api-docs.deepseek.com Search API", "count": 5 }
@@ -98,6 +100,7 @@ npm run test:package
 Automated tests use mocks or a local mock proxy, never paid API calls. CI covers Windows, macOS and Linux. Package tests install a generated tarball in isolation and verify MCP discovery.
 
 - [API reference](docs/REFERENCE.md) · [Client setup](docs/CLIENTS.md)
+- [Routing, upgrading and removing rules](docs/ROUTING.md)
 - [Contributing](CONTRIBUTING.md) · [Testing](docs/TESTING.md) · [Security](SECURITY.md)
 - [Issues](https://github.com/klkl2164/deepseek-search-mcp/issues)
 

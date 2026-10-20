@@ -53,11 +53,15 @@ afterEach(async () => {
 
 it('initializes built server without credentials, lists exactly two tools, validates and reports missing key', async () => {
   const host = start(); active.push(host);
-  await host.initialize();
+  const initialized = await host.initialize();
+  expect(initialized.result.instructions).toContain('Prefer the agent\'s native/built-in');
+  expect(initialized.result.instructions).toContain('Decide search and fetch independently');
   const listed = await host.request('tools/list');
   expect(listed.result.tools.map((tool: { name: string }) => tool.name)).toEqual(['deepseek_search', 'deepseek_fetch']);
   expect(listed.result.tools[0].inputSchema.properties).toHaveProperty('localization');
   expect(listed.result.tools[0].inputSchema.properties.query.maxLength).toBe(128);
+  expect(listed.result.tools[0].description).toContain('Prefer the agent\'s native web search');
+  expect(listed.result.tools[1].description).toContain('Prefer the agent\'s native fetch');
   const invalid = await host.request('tools/call', { name: 'deepseek_search', arguments: { query: '', count: 51 } });
   expect(invalid.error ?? invalid.result?.isError).toBeTruthy();
   const missing = await host.request('tools/call', { name: 'deepseek_search', arguments: { query: 'test' } });

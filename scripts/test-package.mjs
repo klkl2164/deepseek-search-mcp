@@ -34,6 +34,7 @@ async function discover(entry, cwd) {
           assert.equal(message.jsonrpc, '2.0');
           assert.equal(message.error, undefined);
           if (message.id === 1) {
+            assert(message.result.instructions.includes('native/built-in'), 'Packaged server is missing its native-first policy.');
             child.stdin.write(JSON.stringify({ jsonrpc: '2.0', method: 'notifications/initialized' }) + '\n');
             child.stdin.write(JSON.stringify({ jsonrpc: '2.0', id: 2, method: 'tools/list' }) + '\n');
           }
@@ -72,6 +73,12 @@ try {
   assert(!existsSync(join(consumer, 'node_modules', 'typescript')), 'Tarball installed dev dependencies.');
   assert.deepEqual(scanFiles(installed, walk(installed, new Set(['node_modules']))), []);
   await discover(join(installed, 'dist', 'index.js'), consumer);
+  const rulesConfig = join(temporary, 'packaged client rules');
+  const policyEnv = { ...env, CLAUDE_CONFIG_DIR: rulesConfig };
+  execFileSync(process.execPath, [join(installed, 'dist', 'index.js'), '--install-claude-rules'], { env: policyEnv, windowsHide: true });
+  assert(readFileSync(join(rulesConfig, 'rules', 'deepseek-web-fallback.md'), 'utf8').includes('native/built-in'));
+  execFileSync(process.execPath, [join(installed, 'dist', 'index.js'), '--remove-claude-rules'], { env: policyEnv, windowsHide: true });
+  assert(!existsSync(join(rulesConfig, 'rules', 'deepseek-web-fallback.md')));
   console.log('Production tarball install, public contents and MCP discovery passed.');
 
   const gitSource = join(temporary, 'git source');
